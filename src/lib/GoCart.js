@@ -164,7 +164,8 @@ class GoCart {
     }
 
     fetchCart(callback) {
-        window.fetch('/cart.js', {
+        // window.fetch('/cart.js', {
+        window.fetch('/cart?view=json', {
             credentials: 'same-origin',
             method: 'GET',
         })
@@ -314,24 +315,24 @@ class GoCart {
                 itemVariant = '';
             }
             const cartSingleProduct = `
-        <div class="go-cart-item__single" data-line="${Number(index + 1)}">
-            <div class="go-cart-item__info-wrapper">
-                <div class="go-cart-item__image" style="background-image: url(${item.image});"></div>
-                <div class="go-cart-item__info">
-                    <a href="${item.url}" class="go-cart-item__title">${item.product_title}</a>
-                    <div class="go-cart-item__variant">${itemVariant}</div>
-                    <div class="go-cart-item__quantity">
-                        <span class="go-cart-item__quantity-label">${this.labelQuantity} </span>
-                        <span class="go-cart-item__quantity-button js-go-cart-quantity-minus">-</span>
-                        <input class="go-cart-item__quantity-number js-go-cart-quantity" type="number" value="${item.quantity}" disabled>
-                        <span class="go-cart-item__quantity-button js-go-cart-quantity-plus">+</span>
+                <div class="go-cart-item__single" data-line="${Number(index + 1)}">
+                    <div class="go-cart-item__info-wrapper">
+                        <div class="go-cart-item__image" style="background-image: url(${item.image});"></div>
+                        <div class="go-cart-item__info">
+                            <a href="${item.url}" class="go-cart-item__title">${item.product_title}</a>
+                            <div class="go-cart-item__variant">${itemVariant}</div>
+                            <div class="go-cart-item__quantity">
+                                <span class="go-cart-item__quantity-label">${this.labelQuantity} </span>
+                                <span class="go-cart-item__quantity-button js-go-cart-quantity-minus">-</span>
+                                <input class="go-cart-item__quantity-number js-go-cart-quantity" type="number" value="${item.quantity}" disabled>
+                                <span class="go-cart-item__quantity-button js-go-cart-quantity-plus">+</span>
+                            </div>
+                        </div>
                     </div>
+                    <div class="go-cart-item__price">${formatMoney(item.line_price, this.moneyFormat)}</div>
+                    <a class="go-cart-item__remove ${this.removeFromCartNoDot}">${this.labelRemove}</a>
                 </div>
-            </div>
-            <div class="go-cart-item__price">${formatMoney(item.line_price, this.moneyFormat)}</div>
-            <a class="go-cart-item__remove ${this.removeFromCartNoDot}">${this.labelRemove}</a>
-        </div>
-      `;
+            `;
             this.cartDrawerContent.innerHTML += cartSingleProduct;
         });
         this.cartDrawerSubTotal.innerHTML = formatMoney(cart.total_price, this.moneyFormat);
@@ -363,6 +364,12 @@ class GoCart {
                 }
             });
         });
+
+        document.dispatchEvent(new CustomEvent('Cart:Updated', {
+            detail: {
+                items: cart.items
+            }
+        }));
     }
 
     renderMiniCart(cart) {
@@ -373,24 +380,24 @@ class GoCart {
                 itemVariant = '';
             }
             const cartSingleProduct = `
-        <div class="go-cart-item__single" data-line="${Number(index + 1)}">
-            <div class="go-cart-item__info-wrapper">
-                <div class="go-cart-item__image" style="background-image: url(${item.image});"></div>
-                <div class="go-cart-item__info">
-                    <a href="${item.url}" class="go-cart-item__title">${item.product_title}</a>
-                    <div class="go-cart-item__variant">${itemVariant}</div>
-                    <div class="go-cart-item__quantity">
-                        <span class="go-cart-item__quantity-label">${this.labelQuantity} </span>
-                        <span class="go-cart-item__quantity-button js-go-cart-quantity-minus">-</span>
-                        <input class="go-cart-item__quantity-number js-go-cart-quantity" type="number" value="${item.quantity}" disabled>
-                        <span class="go-cart-item__quantity-button js-go-cart-quantity-plus">+</span>
+                <div class="go-cart-item__single" data-line="${Number(index + 1)}">
+                    <div class="go-cart-item__info-wrapper">
+                        <div class="go-cart-item__image" style="background-image: url(${item.image});"></div>
+                        <div class="go-cart-item__info">
+                            <a href="${item.url}" class="go-cart-item__title">${item.product_title}</a>
+                            <div class="go-cart-item__variant">${itemVariant}</div>
+                            <div class="go-cart-item__quantity">
+                                <span class="go-cart-item__quantity-label">${this.labelQuantity} </span>
+                                <span class="go-cart-item__quantity-button js-go-cart-quantity-minus">-</span>
+                                <input class="go-cart-item__quantity-number js-go-cart-quantity" type="number" value="${item.quantity}" disabled>
+                                <span class="go-cart-item__quantity-button js-go-cart-quantity-plus">+</span>
+                            </div>
+                        </div>
                     </div>
+                    <div class="go-cart-item__price">${formatMoney(item.line_price, this.moneyFormat)}</div>
+                    <a class="go-cart-item__remove ${this.removeFromCartNoDot}">${this.labelRemove}</a>
                 </div>
-            </div>
-            <div class="go-cart-item__price">${formatMoney(item.line_price, this.moneyFormat)}</div>
-            <a class="go-cart-item__remove ${this.removeFromCartNoDot}">${this.labelRemove}</a>
-        </div>
-      `;
+            `;
             this.cartMiniCartContent.innerHTML += cartSingleProduct;
         });
         this.cartMiniCartSubTotal.innerHTML = formatMoney(cart.total_price, this.moneyFormat);
@@ -422,6 +429,12 @@ class GoCart {
                 }
             });
         });
+
+        document.dispatchEvent(new CustomEvent('Cart:Updated', {
+            detail: {
+                items: cart.items
+            }
+        }));
     }
 
     renderBlankCartDrawer() {
@@ -465,11 +478,15 @@ class GoCart {
     }
 
     openFailModal() {
-        this.cartModalFail.classList.add('is-open');
+        if (this.cartModalFail !== null) {
+            this.cartModalFail.classList.add('is-open');
+        }
     }
 
     closeFailModal() {
-        this.cartModalFail.classList.remove('is-open');
+        if (this.cartModalFail !== null) {
+            this.cartModalFail.classList.remove('is-open');
+        }
     }
 
     openCartModal() {

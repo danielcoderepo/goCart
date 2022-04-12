@@ -367,6 +367,12 @@ $go-cart-z-index-base: 0 !default;
 
 }
 
+[data-add-to-cart] {
+    span, div {
+        pointer-events: none;
+    }
+}
+
 .is-invisible {
     opacity: 0;
     visibility: hidden;
